@@ -8,10 +8,9 @@ const router = express.Router();
 // All task routes require auth
 router.use(authenticate);
 
-// List tasks — returns ALL tasks, not just the user's
-// BUG: No ownership filtering — any user can see all tasks
+// List tasks — filtered to current user's tasks only
 router.get("/", (req, res) => {
-  res.json(tasks);
+  res.json(tasks.filter((t) => t.userId === req.user.id));
 });
 
 // Create task
