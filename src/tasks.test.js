@@ -79,14 +79,21 @@ describe("Auth API", () => {
     assert.strictEqual(res.status, 201);
   });
 
-  // This test documents the bug — login returns 200 on wrong password
-  it("should return 200 on wrong password (known bug)", async () => {
+  it("should return 401 on wrong password", async () => {
     const res = await fetch(`http://localhost:${port}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "testuser", password: "wrongpass" }),
     });
-    // BUG: This should be 401, but the API returns 200
-    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.status, 401);
+  });
+
+  it("should return 401 for non-existent user", async () => {
+    const res = await fetch(`http://localhost:${port}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "nouser", password: "pass" }),
+    });
+    assert.strictEqual(res.status, 401);
   });
 });
