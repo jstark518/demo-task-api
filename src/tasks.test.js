@@ -101,14 +101,14 @@ describe("Task ownership", () => {
     taskId = task.id;
   });
 
-  it("should return 403 when getting another user's task", async () => {
+  it("should return 404 when getting another user's task", async () => {
     const res = await fetch(`http://localhost:${port}/tasks/${taskId}`, {
       headers: { Authorization: `Bearer ${otherToken}` },
     });
-    assert.strictEqual(res.status, 403);
+    assert.strictEqual(res.status, 404);
   });
 
-  it("should return 403 when updating another user's task", async () => {
+  it("should return 404 when updating another user's task", async () => {
     const res = await fetch(`http://localhost:${port}/tasks/${taskId}`, {
       method: "PUT",
       headers: {
@@ -117,15 +117,15 @@ describe("Task ownership", () => {
       },
       body: JSON.stringify({ title: "Hacked" }),
     });
-    assert.strictEqual(res.status, 403);
+    assert.strictEqual(res.status, 404);
   });
 
-  it("should return 403 when deleting another user's task", async () => {
+  it("should return 404 when deleting another user's task", async () => {
     const res = await fetch(`http://localhost:${port}/tasks/${taskId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${otherToken}` },
     });
-    assert.strictEqual(res.status, 403);
+    assert.strictEqual(res.status, 404);
   });
 
   it("should allow owner to delete their own task", async () => {
