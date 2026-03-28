@@ -8,10 +8,9 @@ const router = express.Router();
 // All task routes require auth
 router.use(authenticate);
 
-// List tasks — returns ALL tasks, not just the user's
-// BUG: No ownership filtering — any user can see all tasks
+// List tasks — filtered to current user's tasks only
 router.get("/", (req, res) => {
-  res.json(tasks);
+  res.json(tasks.filter((t) => t.userId === req.user.id));
 });
 
 // Create task
@@ -39,8 +38,10 @@ router.get("/:id", (req, res) => {
   if (!task) {
     return res.status(404).json({ error: "Task not found" });
   }
+  if (task.userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
 
-  // BUG: No ownership check — any user can view any task
   res.json(task);
 });
 
@@ -51,8 +52,10 @@ router.put("/:id", (req, res) => {
   if (index === -1) {
     return res.status(404).json({ error: "Task not found" });
   }
+  if (tasks[index].userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
 
-  // BUG: No ownership check — any user can update any task
   const { title, description, completed } = req.body;
   tasks[index] = {
     ...tasks[index],
@@ -66,17 +69,19 @@ router.put("/:id", (req, res) => {
 });
 
 // Delete task
-// BUG: Doesn't check ownership — any user can delete any task
-// BUG: Returns 200 with empty body instead of 204
+// Delete task
 router.delete("/:id", (req, res) => {
   const index = tasks.findIndex((t) => t.id === req.params.id);
 
   if (index === -1) {
     return res.status(404).json({ error: "Task not found" });
   }
+  if (tasks[index].userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
 
   tasks.splice(index, 1);
-  res.status(200).json({});
+  res.status(204).send();
 });
 
 module.exports = router;

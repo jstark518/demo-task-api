@@ -69,6 +69,74 @@ describe("Tasks API", () => {
   });
 });
 
+describe("Task ownership", () => {
+  let otherToken;
+  let taskId;
+
+  before(async () => {
+    // Register a second user
+    await fetch(`http://localhost:${port}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "otheruser", password: "otherpass", email: "other@test.com" }),
+    });
+    const loginRes = await fetch(`http://localhost:${port}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "otheruser", password: "otherpass" }),
+    });
+    const loginData = await loginRes.json();
+    otherToken = loginData.token;
+
+    // Create a task as the original user
+    const taskRes = await fetch(`http://localhost:${port}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
+      },
+      body: JSON.stringify({ title: "Owned task", description: "Belongs to testuser" }),
+    });
+    const task = await taskRes.json();
+    taskId = task.id;
+  });
+
+  it("should return 403 when getting another user's task", async () => {
+    const res = await fetch(`http://localhost:${port}/tasks/${taskId}`, {
+      headers: { Authorization: `Bearer ${otherToken}` },
+    });
+    assert.strictEqual(res.status, 403);
+  });
+
+  it("should return 403 when updating another user's task", async () => {
+    const res = await fetch(`http://localhost:${port}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${otherToken}`,
+      },
+      body: JSON.stringify({ title: "Hacked" }),
+    });
+    assert.strictEqual(res.status, 403);
+  });
+
+  it("should return 403 when deleting another user's task", async () => {
+    const res = await fetch(`http://localhost:${port}/tasks/${taskId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${otherToken}` },
+    });
+    assert.strictEqual(res.status, 403);
+  });
+
+  it("should allow owner to delete their own task", async () => {
+    const res = await fetch(`http://localhost:${port}/tasks/${taskId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+    assert.strictEqual(res.status, 204);
+  });
+});
+
 describe("Auth API", () => {
   it("should register a new user", async () => {
     const res = await fetch(`http://localhost:${port}/auth/register`, {
