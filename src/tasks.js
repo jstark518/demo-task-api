@@ -40,7 +40,10 @@ router.get("/:id", (req, res) => {
     return res.status(404).json({ error: "Task not found" });
   }
 
-  // BUG: No ownership check — any user can view any task
+  if (task.userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
   res.json(task);
 });
 
@@ -52,7 +55,10 @@ router.put("/:id", (req, res) => {
     return res.status(404).json({ error: "Task not found" });
   }
 
-  // BUG: No ownership check — any user can update any task
+  if (tasks[index].userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
   const { title, description, completed } = req.body;
   tasks[index] = {
     ...tasks[index],
@@ -66,8 +72,7 @@ router.put("/:id", (req, res) => {
 });
 
 // Delete task
-// BUG: Doesn't check ownership — any user can delete any task
-// BUG: Returns 200 with empty body instead of 204
+// Delete task
 router.delete("/:id", (req, res) => {
   const index = tasks.findIndex((t) => t.id === req.params.id);
 
@@ -75,8 +80,12 @@ router.delete("/:id", (req, res) => {
     return res.status(404).json({ error: "Task not found" });
   }
 
+  if (tasks[index].userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
   tasks.splice(index, 1);
-  res.status(200).json({});
+  res.status(204).send();
 });
 
 module.exports = router;
