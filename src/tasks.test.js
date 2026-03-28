@@ -63,6 +63,44 @@ describe("Tasks API", () => {
     assert.ok(tasks.length > 0);
   });
 
+  it("should reject empty title", async () => {
+    const res = await fetch(`http://localhost:${port}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
+      },
+      body: JSON.stringify({ title: "", description: "No title" }),
+    });
+    assert.strictEqual(res.status, 400);
+    const body = await res.json();
+    assert.ok(body.error);
+  });
+
+  it("should reject missing title", async () => {
+    const res = await fetch(`http://localhost:${port}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
+      },
+      body: JSON.stringify({ description: "No title field" }),
+    });
+    assert.strictEqual(res.status, 400);
+  });
+
+  it("should reject whitespace-only title", async () => {
+    const res = await fetch(`http://localhost:${port}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
+      },
+      body: JSON.stringify({ title: "   ", description: "Spaces only" }),
+    });
+    assert.strictEqual(res.status, 400);
+  });
+
   it("should require auth", async () => {
     const res = await fetch(`http://localhost:${port}/tasks`);
     assert.strictEqual(res.status, 401);
