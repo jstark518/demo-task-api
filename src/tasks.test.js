@@ -101,6 +101,33 @@ describe("Tasks API", () => {
     assert.strictEqual(res.status, 400);
   });
 
+  it("should reject empty title on PUT update", async () => {
+    // First create a valid task
+    const createRes = await fetch(`http://localhost:${port}/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
+      },
+      body: JSON.stringify({ title: "Task to update", description: "Will try empty title" }),
+    });
+    assert.strictEqual(createRes.status, 201);
+    const task = await createRes.json();
+
+    // Try to update with empty title
+    const updateRes = await fetch(`http://localhost:${port}/tasks/${task.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userToken}`,
+      },
+      body: JSON.stringify({ title: "" }),
+    });
+    assert.strictEqual(updateRes.status, 400);
+    const body = await updateRes.json();
+    assert.ok(body.error);
+  });
+
   it("should require auth", async () => {
     const res = await fetch(`http://localhost:${port}/tasks`);
     assert.strictEqual(res.status, 401);
