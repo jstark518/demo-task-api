@@ -35,8 +35,11 @@ router.post("/", (req, res) => {
 router.get("/:id", (req, res) => {
   const task = tasks.find((t) => t.id === req.params.id);
 
-  if (!task || task.userId !== req.user.id) {
+  if (!task) {
     return res.status(404).json({ error: "Task not found" });
+  }
+  if (task.userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
   }
 
   res.json(task);
@@ -46,8 +49,11 @@ router.get("/:id", (req, res) => {
 router.put("/:id", (req, res) => {
   const index = tasks.findIndex((t) => t.id === req.params.id);
 
-  if (index === -1 || tasks[index].userId !== req.user.id) {
+  if (index === -1) {
     return res.status(404).json({ error: "Task not found" });
+  }
+  if (tasks[index].userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
   }
 
   const { title, description, completed } = req.body;
@@ -67,8 +73,11 @@ router.put("/:id", (req, res) => {
 router.delete("/:id", (req, res) => {
   const index = tasks.findIndex((t) => t.id === req.params.id);
 
-  if (index === -1 || tasks[index].userId !== req.user.id) {
+  if (index === -1) {
     return res.status(404).json({ error: "Task not found" });
+  }
+  if (tasks[index].userId !== req.user.id) {
+    return res.status(403).json({ error: "Forbidden" });
   }
 
   tasks.splice(index, 1);
