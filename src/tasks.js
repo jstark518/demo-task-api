@@ -18,7 +18,10 @@ router.get("/", (req, res) => {
 router.post("/", (req, res) => {
   const { title, description } = req.body;
 
-  // BUG: Allows empty title
+  if (!title || typeof title !== "string" || title.trim() === "") {
+    return res.status(400).json({ error: "Title is required and cannot be empty" });
+  }
+
   const task = {
     id: uuid(),
     title: title || "",
@@ -54,6 +57,11 @@ router.put("/:id", (req, res) => {
 
   // BUG: No ownership check — any user can update any task
   const { title, description, completed } = req.body;
+
+  if (title !== undefined && (typeof title !== "string" || title.trim() === "")) {
+    return res.status(400).json({ error: "Title cannot be empty" });
+  }
+
   tasks[index] = {
     ...tasks[index],
     title: title !== undefined ? title : tasks[index].title,
